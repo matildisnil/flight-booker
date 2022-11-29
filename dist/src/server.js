@@ -16,79 +16,57 @@ var corsOptions = {
 };
 app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.urlencoded({ extended: true }));
-// const findItineraries = (req: Request<{}, {}, {}, IQuery>, res: Response, responseObject: ResponseData, itinerariesString: string) => {
-//   const flight = flightData.find(flight => flight.depatureDestination === req.query.origin && flight.arrivalDestination === req.query.destination);
-//   if (!flight) {
-//     responseObject.message = 'There are no flights between those cities'
-//     return res.json(responseObject);
-//   }
-//   const itinerariesOutbound = flight?.itineraries.filter(itinerary => {
-//     return itinerary.depatureAt.substring(0, 10) === req.query.departureDate
-//   })
-//   if (!itinerariesOutbound) {
-//     responseObject.message = 'There are no flights on the chosen date'
-//     return res.json(responseObject);
-//   }
-//   console.log(itinerariesOutbound);
-//   if (flight && itinerariesOutbound) {
-//     const formattedFlights = itinerariesOutbound.map(itinerary => {
-//       return {
-//         pointOfDeparture: flight.depatureDestination,
-//         pointOfArrival: flight.arrivalDestination,
-//         departureAt: itinerary.depatureAt,
-//         arrivalAt: itinerary.arriveAt,
-//         availableSeats: itinerary.avaliableSeats,
-//         prices: itinerary.prices,
-//       }
-//     })
-//     return formattedFlights;
-//   }
+const findItineraries = (pointOfOrigin, pointOfArrival, travelDate, numPassengers) => {
+    const tripObject = { itineraries: [], message: '' };
+    const flight = flightData_json_1.default.find(flight => flight.depatureDestination === pointOfOrigin && flight.arrivalDestination === pointOfArrival);
+    if (!flight) {
+        tripObject.message = 'There are no flights between those cities';
+        return tripObject;
+    }
+    const itinerariesOutbound = flight === null || flight === void 0 ? void 0 : flight.itineraries.filter(itinerary => {
+        return itinerary.depatureAt.substring(0, 10) === travelDate && (itinerary.avaliableSeats >= +numPassengers);
+    });
+    if (!itinerariesOutbound) {
+        tripObject.message = 'There are no flights with enough available seats on the chosen date';
+        return tripObject;
+    }
+    console.log(itinerariesOutbound);
+    if (flight && itinerariesOutbound) {
+        const formattedFlights = itinerariesOutbound.map(itinerary => {
+            return {
+                pointOfDeparture: flight.depatureDestination,
+                pointOfArrival: flight.arrivalDestination,
+                departureAt: itinerary.depatureAt,
+                arrivalAt: itinerary.arriveAt,
+                availableSeats: itinerary.avaliableSeats,
+                prices: itinerary.prices,
+            };
+        });
+        tripObject.itineraries = formattedFlights;
+        return tripObject;
+    }
+    tripObject.message = 'Something went wrong';
+    return tripObject;
+};
 app.get('/', (req, res) => {
     var _a;
     // kanske slänga in en check så att queryn verkligen ser ut som den ska?
     // if(!departureDate){
     //   return res.json({message: 'Please provide a departure date'});
     // }
-    const responseObject = { itinerariesOut: [], itinerariesReturn: [], message: '' };
+    const responseObject = { outboundTrip: { itineraries: [], message: '' }, returnTrip: { itineraries: [], message: '' }, message: '' };
     try {
-        console.log((_a = req.query) === null || _a === void 0 ? void 0 : _a.returnDate, 'depdategate');
-        // responseObject.itinerariesOut = findItineraries(req, res, responseObject, 'itinerariesOut')
-        const flight = flightData_json_1.default.find(flight => flight.depatureDestination === req.query.origin && flight.arrivalDestination === req.query.destination);
-        if (!flight) {
-            responseObject.message = 'There are no flights between those cities';
-            return res.json(responseObject);
+        console.log((_a = req.query) === null || _a === void 0 ? void 0 : _a.returnDate, 'returndategate');
+        responseObject.outboundTrip = findItineraries(req.query.origin, req.query.destination, req.query.departureDate, req.query.numPassengers);
+        if (req.query.returnDate) {
+            responseObject.returnTrip = findItineraries(req.query.destination, req.query.origin, req.query.returnDate, req.query.numPassengers);
         }
-        const itinerariesOut = flight === null || flight === void 0 ? void 0 : flight.itineraries.filter(itinerary => {
-            return itinerary.depatureAt.substring(0, 10) === req.query.departureDate;
-        });
-        if (!itinerariesOut) {
-            responseObject.message = 'There are no flights on the chosen date';
-            return res.json(responseObject);
-        }
-        console.log(itinerariesOut);
-        if (flight && itinerariesOut) {
-            const formattedFlights = itinerariesOut.map(itinerary => {
-                return {
-                    pointOfDeparture: flight.depatureDestination,
-                    pointOfArrival: flight.arrivalDestination,
-                    departureAt: itinerary.depatureAt,
-                    arrivalAt: itinerary.arriveAt,
-                    availableSeats: itinerary.avaliableSeats,
-                    prices: itinerary.prices,
-                };
-            });
-            responseObject.itinerariesOut = formattedFlights;
-            if (req.query.returnDate) {
-            }
-            return res.json(responseObject);
-        }
-        responseObject.message = 'No such flight in our system';
         return res.json(responseObject);
     }
     catch (err) {
         console.log(err);
         responseObject.message = 'Something went wrong';
-        return res.json(responseObject);
+        return res.status(500).json(responseObject);
     }
 });
 app.listen(port, () => {
