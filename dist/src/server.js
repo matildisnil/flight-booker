@@ -16,6 +16,7 @@ var corsOptions = {
 };
 app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.urlencoded({ extended: true }));
+app.use(express_1.default.json());
 const findItineraries = (pointOfOrigin, pointOfArrival, travelDate, numPassengers) => {
     const tripObject = { itineraries: [], message: '' };
     const flight = flightData_json_1.default.find(flight => flight.depatureDestination === pointOfOrigin && flight.arrivalDestination === pointOfArrival);
@@ -23,16 +24,16 @@ const findItineraries = (pointOfOrigin, pointOfArrival, travelDate, numPassenger
         tripObject.message = 'There are no flights between those cities';
         return tripObject;
     }
-    const itinerariesOutbound = flight === null || flight === void 0 ? void 0 : flight.itineraries.filter(itinerary => {
+    const itineraries = flight === null || flight === void 0 ? void 0 : flight.itineraries.filter(itinerary => {
         return itinerary.depatureAt.substring(0, 10) === travelDate && (itinerary.avaliableSeats >= +numPassengers);
     });
-    if (!itinerariesOutbound) {
-        tripObject.message = 'There are no flights with enough available seats on the chosen date';
+    if (itineraries.length === 0) {
+        tripObject.message = 'There are no suitable flights on the chosen date';
         return tripObject;
     }
-    console.log(itinerariesOutbound);
-    if (flight && itinerariesOutbound) {
-        const formattedFlights = itinerariesOutbound.map(itinerary => {
+    console.log(itineraries);
+    if (flight && itineraries) {
+        const formattedFlights = itineraries.map(itinerary => {
             return {
                 pointOfDeparture: flight.depatureDestination,
                 pointOfArrival: flight.arrivalDestination,
@@ -67,6 +68,26 @@ app.get('/', (req, res) => {
         console.log(err);
         responseObject.message = 'Something went wrong';
         return res.status(500).json(responseObject);
+    }
+});
+const bookItinerary = (tripObject) => {
+    const flight = flightData_json_1.default.find(flight => flight.depatureDestination === tripObject.pointOfDeparture && flight.arrivalDestination === tripObject.pointOfArrival);
+    const itinerary = flight === null || flight === void 0 ? void 0 : flight.itineraries.find(itinerary => itinerary.depatureAt === tripObject.departureAt && itinerary.arriveAt === tripObject.arrivalAt);
+    if (flight && itinerary) {
+        itinerary.avaliableSeats -= tripObject.numberOfPassengers;
+    }
+};
+app.patch('/', (req, res) => {
+    console.log(req.body, 'requestBody');
+    try {
+        bookItinerary(req.body.outboundTrip);
+        if (req.body.returnTrip) {
+            bookItinerary(req.body.returnTrip);
+        }
+        res.status(204).json({});
+    }
+    catch (err) {
+        res.status(500).json({ error: 'Something went wrong' });
     }
 });
 app.listen(port, () => {

@@ -24,6 +24,19 @@ interface ResponseData {
   message: string,
 }
 
+interface RequestObject {
+  outboundTrip: RequestTrip,
+  returnTrip: RequestTrip | null,
+}
+
+interface RequestTrip {
+  arrivalAt: string,
+  departureAt: string,
+  pointOfArrival: string,
+  pointOfDeparture: string,
+  numberOfPassengers: number,
+}
+
 const app: Express = express();
 const port = process.env.PORT || 8000;
 
@@ -35,6 +48,8 @@ interface IQuery {
   numPassengers: string,
 }
 
+
+
 var corsOptions = {
   origin: 'http://localhost:3000',
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
@@ -42,6 +57,7 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 const findItineraries = (pointOfOrigin: string, pointOfArrival: string, travelDate: string, numPassengers: string) => {
   const tripObject: TripObject = { itineraries: [], message: '' }
@@ -50,16 +66,16 @@ const findItineraries = (pointOfOrigin: string, pointOfArrival: string, travelDa
     tripObject.message = 'There are no flights between those cities'
     return tripObject;
   }
-  const itinerariesOutbound = flight?.itineraries.filter(itinerary => {
+  const itineraries = flight?.itineraries.filter(itinerary => {
     return itinerary.depatureAt.substring(0, 10) === travelDate && (itinerary.avaliableSeats >= +numPassengers);
   })
-  if (!itinerariesOutbound) {
-    tripObject.message = 'There are no flights with enough available seats on the chosen date'
+  if (itineraries.length === 0) {
+    tripObject.message = 'There are no suitable flights on the chosen date'
     return tripObject;
   }
-  console.log(itinerariesOutbound);
-  if (flight && itinerariesOutbound) {
-    const formattedFlights = itinerariesOutbound.map(itinerary => {
+  console.log(itineraries);
+  if (flight && itineraries) {
+    const formattedFlights = itineraries.map(itinerary => {
       return {
         pointOfDeparture: flight.depatureDestination,
         pointOfArrival: flight.arrivalDestination,
@@ -97,6 +113,28 @@ app.get('/', (req: Request<{}, {}, {}, IQuery>, res: Response) => {
     }
   });
 
+const bookItinerary = (tripObject: RequestTrip) => {
+  const flight = flightData.find(flight => flight.depatureDestination === tripObject.pointOfDeparture && flight.arrivalDestination === tripObject.pointOfArrival);
+  const itinerary = flight?.itineraries.find(itinerary => itinerary.depatureAt === tripObject.departureAt && itinerary.arriveAt === tripObject.arrivalAt )
+  if (flight && itinerary){
+    itinerary.avaliableSeats -= tripObject.numberOfPassengers
+  }
+}
+
+app.patch('/', (req: Request<{}, {}, RequestObject>, res: Response) => {
+  console.log(req.body, 'requestBody');
+  try {
+    bookItinerary(req.body.outboundTrip);
+    if(req.body.returnTrip){
+      bookItinerary(req.body.returnTrip);
+    }
+    res.status(204).json({});
+  } catch (err){
+    res.status(500).json({error: 'Something went wrong'});
+  }
+})
+
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
 });
+
