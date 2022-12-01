@@ -5,6 +5,7 @@ import flightData from '../flightData.json';
 dotenv.config();
 
 interface IItinerary {
+  flight_id: string,
   pointOfDeparture: string,
   pointOfArrival: string,
   departureAt: string,
@@ -77,6 +78,7 @@ const findItineraries = (pointOfOrigin: string, pointOfArrival: string, travelDa
   if (flight && itineraries) {
     const formattedFlights = itineraries.map(itinerary => {
       return {
+        flight_id: flight.flight_id,
         pointOfDeparture: flight.depatureDestination,
         pointOfArrival: flight.arrivalDestination,
         departureAt: itinerary.depatureAt,
