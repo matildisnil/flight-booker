@@ -60,6 +60,12 @@ app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+const formatString = (str: string) =>{
+  return str[0]?.toUpperCase() + str.slice(1).toLowerCase();
+}
+
+const timeout = (ms:number) => new Promise(resolve => setTimeout(resolve, ms));
+
 const findItineraries = (pointOfOrigin: string, pointOfArrival: string, travelDate: string, numPassengers: string) => {
   const tripObject: TripObject = { itineraries: [], message: '' }
   const flight = flightData.find(flight => flight.depatureDestination === pointOfOrigin && flight.arrivalDestination === pointOfArrival);
@@ -94,23 +100,29 @@ const findItineraries = (pointOfOrigin: string, pointOfArrival: string, travelDa
   return tripObject;
 }
 
-app.get('/', (req: Request<{}, {}, {}, IQuery>, res: Response) => {
+app.get('/', async (req: Request<{}, {}, {}, IQuery>, res: Response) => {
   // kanske slänga in en check så att queryn verkligen ser ut som den ska?
   // if(!departureDate){
   //   return res.json({message: 'Please provide a departure date'});
   // }
   const responseObject: ResponseData = { outboundTrip: {itineraries: [], message: ''}, returnTrip: {itineraries: [], message: ''}, message: '' }
+  const wait = timeout(3000);
 
   try {
+    // fungerar det att göra så här?
+    const formattedOrigin = formatString(req.query.origin);
+    const formattedDestination = formatString(req.query.destination);
     console.log(req.query?.returnDate, 'returndategate')
-    responseObject.outboundTrip = findItineraries(req.query.origin, req.query.destination, req.query.departureDate, req.query.numPassengers);
+    responseObject.outboundTrip = findItineraries(formattedOrigin, formattedDestination, req.query.departureDate, req.query.numPassengers);
     if(req.query.returnDate){
-      responseObject.returnTrip = findItineraries(req.query.destination, req.query.origin, req.query.returnDate, req.query.numPassengers);
+      responseObject.returnTrip = findItineraries(formattedDestination, formattedOrigin, req.query.returnDate, req.query.numPassengers);
     }
+    await wait;
     return res.json(responseObject);
     } catch (err) {
       console.log(err);
       responseObject.message = 'Something went wrong'
+      await wait;
       return res.status(500).json(responseObject);
     }
   });
