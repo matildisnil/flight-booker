@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    // "target": "es2020",
+    "target": "es2016",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
     "sourceMap": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -10,7 +10,6 @@
     "baseUrl": "./",
     // "inlineSources": true,
     // "useUnknownInCatchVariables": false
-    "target": "es2016",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
     "module": "commonjs",                                 /* Specify the base directory to resolve non-relative module names. */
     "paths": {
       "@src/*": ["./src/*"]

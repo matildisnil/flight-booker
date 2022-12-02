@@ -14,9 +14,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const dotenv_1 = __importDefault(require("dotenv"));
+// import dotenv from 'dotenv';
+// dotenv.config();
 const flightData_json_1 = __importDefault(require("./flightData.json"));
-dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 8000;
 var corsOptions = {
@@ -53,7 +53,6 @@ const findItineraries = (pointOfOrigin, pointOfArrival, travelDate, numAdults, n
         tripObject.message = 'There are no suitable flights on the chosen date';
         return tripObject;
     }
-    console.log(itineraries);
     if (flight && itineraries.length !== 0) {
         const formattedFlights = itineraries.map(itinerary => {
             const totalPriceInSEK = calculatePrice(itinerary, numAdults, numChildren);
@@ -75,14 +74,12 @@ const findItineraries = (pointOfOrigin, pointOfArrival, travelDate, numAdults, n
     return tripObject;
 };
 app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     const responseObject = { outboundTrip: { itineraries: [], message: '' }, returnTrip: { itineraries: [], message: '' }, passengers: { adults: req.query.numAdults, children: req.query.numChildren }, message: '' };
     const wait = timeout(3000);
     try {
         // fungerar det att göra så här?
         const formattedOrigin = formatString(req.query.origin);
         const formattedDestination = formatString(req.query.destination);
-        console.log((_a = req.query) === null || _a === void 0 ? void 0 : _a.returnDate, 'returndategate');
         responseObject.outboundTrip = findItineraries(formattedOrigin, formattedDestination, req.query.departureDate, req.query.numAdults, req.query.numChildren);
         if (req.query.returnDate) {
             responseObject.returnTrip = findItineraries(formattedDestination, formattedOrigin, req.query.returnDate, req.query.numAdults, req.query.numChildren);
@@ -101,9 +98,7 @@ const bookItinerary = (tripObject, numberOfPassengers) => {
     const flight = flightData_json_1.default.find(flight => flight.depatureDestination === tripObject.pointOfDeparture && flight.arrivalDestination === tripObject.pointOfArrival);
     const itinerary = flight === null || flight === void 0 ? void 0 : flight.itineraries.find(itinerary => itinerary.depatureAt === tripObject.departureAt && itinerary.arriveAt === tripObject.arrivalAt);
     if (flight && itinerary) {
-        console.log(itinerary.avaliableSeats, 'seats before');
         itinerary.avaliableSeats -= numberOfPassengers;
-        console.log(itinerary.avaliableSeats, 'after');
     }
 };
 app.patch('/', (req, res) => {

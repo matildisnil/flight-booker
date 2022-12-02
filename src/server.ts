@@ -1,10 +1,10 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import flightData from './flightData.json';
-dotenv.config();
-import { IDataBaseItinerary, IItinerary, TripObject, ResponseData, RequestObject, IQuery } from './types'
+// import dotenv from 'dotenv';
+// dotenv.config();
 
+import flightData from './flightData.json';
+import { IDataBaseItinerary, IItinerary, TripObject, ResponseData, RequestObject, IQuery } from './types'
 
 const app: Express = express();
 const port = process.env.PORT || 8000;
@@ -47,7 +47,6 @@ const findItineraries = (pointOfOrigin: string, pointOfArrival: string, travelDa
     tripObject.message = 'There are no suitable flights on the chosen date'
     return tripObject;
   }
-  console.log(itineraries);
   if (flight && itineraries.length !== 0) {
     const formattedFlights = itineraries.map(itinerary => {
       const totalPriceInSEK = calculatePrice(itinerary, numAdults, numChildren);
@@ -77,7 +76,6 @@ app.get('/', async (req: Request<{}, {}, {}, IQuery>, res: Response) => {
     // fungerar det att göra så här?
     const formattedOrigin = formatString(req.query.origin);
     const formattedDestination = formatString(req.query.destination);
-    console.log(req.query?.returnDate, 'returndategate')
     responseObject.outboundTrip = findItineraries(formattedOrigin, formattedDestination, req.query.departureDate, req.query.numAdults, req.query.numChildren);
     if(req.query.returnDate){
       responseObject.returnTrip = findItineraries(formattedDestination, formattedOrigin, req.query.returnDate, req.query.numAdults, req.query.numChildren);
@@ -96,9 +94,7 @@ const bookItinerary = (tripObject: IItinerary, numberOfPassengers: number ) => {
   const flight = flightData.find(flight => flight.depatureDestination === tripObject.pointOfDeparture && flight.arrivalDestination === tripObject.pointOfArrival);
   const itinerary = flight?.itineraries.find(itinerary => itinerary.depatureAt === tripObject.departureAt && itinerary.arriveAt === tripObject.arrivalAt )
   if (flight && itinerary){
-    console.log(itinerary.avaliableSeats, 'seats before')
     itinerary.avaliableSeats -= numberOfPassengers
-    console.log(itinerary.avaliableSeats, 'after')
   }
 }
 
@@ -117,4 +113,3 @@ app.patch('/', (req: Request<{}, {}, RequestObject>, res: Response) => {
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
 });
-
