@@ -1,0 +1,76 @@
+.initialForm {
+  maxWidth: 800px;
+  /* width: 100%; */
+  margin: 100px auto;
+  padding: 1.4rem;
+}
+
+.initialForm__form {
+  background-color: white;
+}
+
+.initialForm__destinationsDiv {
+  display: flex;
+  /* justify-content: space-evenly; */
+  /* flex: 1; */
+  /* margin: 1rem; */
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.initialForm__input {
+  /* margin: 0.4rem; */
+  /* width: 300px; */
+}
+
+.initialForm__datesDiv {
+  display: flex;
+  justify-content: space-evenly;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.initialForm_bottomDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.initialForm__selectContainer {
+  display: flex;
+  width: 200px;
+}
+
+.card {
+  margin-bottom: 1rem;
+}
+
+.card__content{
+  display: flex;
+}
+
+.card_leftDiv {
+  flex-grow: 1;
+}
+
+.card__divider {
+  margin-right: 1rem;
+}
+
+.card_rightDiv {
+  width: 200px;
+}
+
+.card__buttonContainer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.card__button {
+  justify-self: flex-end;
+}
+
+.home__bookButton {
+  padding: 100px;
+}

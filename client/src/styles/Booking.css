@@ -1,0 +1,16 @@
+.booking__container {
+  margin: 0 auto;
+  width: 600px;
+}
+
+.bookingForm__passenger {
+  margin-bottom: 10px;
+}
+
+.bookingForm__inputDiv {
+  display: flex;
+}
+
+/* .booking__formInput {
+  margin: 5px;
+} */

@@ -1,0 +1,24 @@
+.confirmation__flightInfo {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.confirmation__duration {
+  display: flex;
+  align-items: center;
+}
+
+.confirmationFlightInfoCard {
+  padding: 1rem;
+}
+
+.flightCard__header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.confirmation__bottomContainer {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
